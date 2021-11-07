@@ -4,24 +4,32 @@ using CRUD_API.Dtos;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Hosting;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using System.Linq;
+using System;
 
 namespace CRUD_API.Models
 {
-    [Route("api/Employee")]
+    [Route("api/[Controller]/[Action]")]//[Controller]/[Action]
     [ApiController]
     public class EmployeeController : ControllerBase
     {
         private readonly IEmployeeRepo _repo;
         private readonly IMapper _mapper;
+        private readonly IHostingEnvironment _hostingEnv;
         /// <summary>
         /// dependency injection
         /// </summary>
         /// <param name="employeeRepo"></param>
         /// <param name="mapper"></param>
-        public EmployeeController(IEmployeeRepo employeeRepo, IMapper mapper)
+        public EmployeeController(IEmployeeRepo employeeRepo, IMapper mapper, IHostingEnvironment Env)
         {
             _repo = employeeRepo;
             _mapper = mapper;
+            _hostingEnv = Env;
         }
         //private readonly EmployeeRepo _repo = new EmployeeRepo();
 
@@ -29,14 +37,15 @@ namespace CRUD_API.Models
         ///<param name="employeeCreateDto">api/employee/{Take employee Model to new create new emp}</param>
         ///<returns>
         ///To return 201 status ok i use CreatedAtRoute function and return CreatedAtRouteResult
-        ///Source: https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controllerbase.createdatroute?view=aspnetcore-5.0
+        ///Source-1 define: https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controllerbase.createdatroute?view=aspnetcore-5.0
+        ///Source-2 code: https://docs.microsoft.com/en-us/aspnet/core/web-api/?view=aspnetcore-6.0
         ///</returns>
         [HttpPost]
-        public ActionResult<EmployeeModelReadDto> CreateEmployee(EmployeeModelCreateDto employeeCreateDto)
+        public async Task<ActionResult<EmployeeModelReadDto>> CreateEmployee(EmployeeModelCreateDto employeeCreateDto)
         {
             var createEmp = _mapper.Map<EmployeeModel>(employeeCreateDto);
             _repo.CreateEmployee(createEmp);
-            _repo.SaveChange();
+            await _repo.SaveChange();
             var createReadDto = _mapper.Map<EmployeeModelReadDto>(createEmp);
             return  CreatedAtRoute(nameof(GetEmpById), new { ID = createReadDto.ID }, createReadDto);
         }
@@ -123,7 +132,44 @@ namespace CRUD_API.Models
             }
             return NotFound();
         }
-
         
+        [HttpPost("id")]
+        public async Task<string> UploadEmpImage(int id)
+        {
+            try
+            {
+                var files = HttpContext.Request.Form.Files;
+                var emp = _repo.GetEmployeeById(id);
+                if(files != null && files.Count == 1)
+                {
+                    
+                    foreach(var file in files)
+                    {
+                        emp.Image = await UploadImage(file);
+                    }
+                }
+                _repo.UpdateEmployee(emp);
+                await _repo.SaveChange();
+            }
+            catch(Exception e)
+            {
+                throw e;
+            }
+            return "Employee images saved";
+        }
+
+        [NonAction]
+        public async Task<string> UploadImage(IFormFile imgFile)
+        {
+            string imageName = new string(Path.GetFileNameWithoutExtension(imgFile.FileName).Take(10).ToArray()).Replace(' ', '-');
+            imageName += DateTime.Now.ToString("yymmddhhssff") + Path.GetExtension(imgFile.FileName);
+            var imgPath = Path.Combine(_hostingEnv.ContentRootPath, "Images", imageName);
+
+            using (var fileStream = new FileStream(imgPath, FileMode.Create))
+            {
+                await imgFile.CopyToAsync(fileStream);
+            }
+            return imageName;
+        }
     }
 }

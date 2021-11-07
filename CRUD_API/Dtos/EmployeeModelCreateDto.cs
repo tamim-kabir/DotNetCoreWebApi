@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CRUD_API.Dtos
 {
@@ -10,6 +11,9 @@ namespace CRUD_API.Dtos
         public string Occopation { get; set; }
         [Column(TypeName = "varchar(100)")]
         public string Image { get; set; }
+
+        [NotMapped]
+        public IFormFile ImageFile { get; set; }
 
     }
 }

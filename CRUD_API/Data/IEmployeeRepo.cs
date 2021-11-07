@@ -8,7 +8,7 @@ namespace CRUD_API.Data
 {
     public interface IEmployeeRepo
     {
-        bool SaveChange();
+        Task<bool> SaveChange();
         IEnumerable<EmployeeModel> GetAllEmployee();
         EmployeeModel GetEmployeeById(int id);
         void CreateEmployee(EmployeeModel employee);

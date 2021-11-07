@@ -9,12 +9,10 @@ namespace CRUD_API.Data
     public class SqlEmployeeRepo : IEmployeeRepo
     {
         private readonly EmployeeDBContext _Context;
-
         public SqlEmployeeRepo(EmployeeDBContext context)
         {
             _Context = context;
         }
-
         public void CreateEmployee(EmployeeModel employee)
         {
             if (employee == null)
@@ -31,8 +29,8 @@ namespace CRUD_API.Data
         public EmployeeModel GetEmployeeById(int id)
             => _Context.Employees.FirstOrDefault(m => m.ID == id);
 
-        public bool SaveChange() 
-            => _Context.SaveChanges() >= 0;
+        public async Task<bool> SaveChange() 
+            => await _Context.SaveChangesAsync() >= 0;
 
         public void UpdateEmployee(EmployeeModel employeeModel)
         {
