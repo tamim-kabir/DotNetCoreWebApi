@@ -8,5 +8,7 @@ namespace CRUD_API.Models
         {
         }
         public DbSet<EmployeeModel> Employees { get; set; }
+
+        public DbSet<EmployeeImgModel> EmployeeImgs { get; set; }
     }
 }

@@ -1,35 +1,32 @@
 ﻿using AutoMapper;
 using CRUD_API.Data;
 using CRUD_API.Dtos;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Hosting;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using System.IO;
 using System.Linq;
-using System;
+using System.Threading.Tasks;
 
 namespace CRUD_API.Models
 {
-    [Route("api/[Controller]/[Action]")]//[Controller]/[Action]
+    [Route("api/Employee")]//[Controller]/[Action]
     [ApiController]
     public class EmployeeController : ControllerBase
     {
-        private readonly IEmployeeRepo _repo;
+        private readonly IEmployeeRepo<EmployeeModel> _repo;
         private readonly IMapper _mapper;
-        private readonly IHostingEnvironment _hostingEnv;
         /// <summary>
         /// dependency injection
         /// </summary>
         /// <param name="employeeRepo"></param>
         /// <param name="mapper"></param>
-        public EmployeeController(IEmployeeRepo employeeRepo, IMapper mapper, IHostingEnvironment Env)
+        public EmployeeController(IEmployeeRepo employeeRepo, IMapper mapper)
         {
             _repo = employeeRepo;
             _mapper = mapper;
-            _hostingEnv = Env;
         }
         //private readonly EmployeeRepo _repo = new EmployeeRepo();
 
@@ -133,43 +130,6 @@ namespace CRUD_API.Models
             return NotFound();
         }
         
-        [HttpPost("id")]
-        public async Task<string> UploadEmpImage(int id)
-        {
-            try
-            {
-                var files = HttpContext.Request.Form.Files;
-                var emp = _repo.GetEmployeeById(id);
-                if(files != null && files.Count == 1)
-                {
-                    
-                    foreach(var file in files)
-                    {
-                        emp.Image = await UploadImage(file);
-                    }
-                }
-                _repo.UpdateEmployee(emp);
-                await _repo.SaveChange();
-            }
-            catch(Exception e)
-            {
-                throw e;
-            }
-            return "Employee images saved";
-        }
-
-        [NonAction]
-        public async Task<string> UploadImage(IFormFile imgFile)
-        {
-            string imageName = new string(Path.GetFileNameWithoutExtension(imgFile.FileName).Take(10).ToArray()).Replace(' ', '-');
-            imageName += DateTime.Now.ToString("yymmddhhssff") + Path.GetExtension(imgFile.FileName);
-            var imgPath = Path.Combine(_hostingEnv.ContentRootPath, "Images", imageName);
-
-            using (var fileStream = new FileStream(imgPath, FileMode.Create))
-            {
-                await imgFile.CopyToAsync(fileStream);
-            }
-            return imageName;
-        }
+        
     }
 }

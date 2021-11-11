@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CRUD_API.Data
 {
-    public class SqlEmployeeRepo : IEmployeeRepo
+    public class SqlEmployeeRepo<T> : IEmployeeRepo<T> where T : class
     {
         private readonly EmployeeDBContext _Context;
         public SqlEmployeeRepo(EmployeeDBContext context)
@@ -46,6 +46,16 @@ namespace CRUD_API.Data
 
             }
             _Context.Employees.Remove(employee);
+        }
+
+        public void Update(T employeeModel)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Delete(T employee)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace CRUD_API.Data
 {
-    public interface IEmployeeRepo
+    public interface IEmployeeRepo<T> where T : class, IApplicatioRepo<T> 
     {
-        Task<bool> SaveChange();
+
         IEnumerable<EmployeeModel> GetAllEmployee();
         EmployeeModel GetEmployeeById(int id);
         void CreateEmployee(EmployeeModel employee);
